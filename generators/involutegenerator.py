@@ -82,14 +82,11 @@ class InvoluteGenerator(GearGenerator):
                             help="internal gear")
         parser.add_argument("-b", "--backlash", type=float, default=0.008,
                             help="Backlash (in)")
-        
 
     def generate_circles(self, drawing):
         super(InvoluteGenerator,self).generate_circles(drawing)
         drawing.add(self.new_circle(0,self.r_base, color=3))
         drawing.add(self.new_circle(0,self.r_inner, color=4))
-
-        drawing.add(self.new_circle(rect(self.r_pitch, self.phi_width/4), self.backlash, color=1))
 
     def generate_text(self, drawing):
         textheight = self.module/2
@@ -109,25 +106,29 @@ class InvoluteGenerator(GearGenerator):
             drawing.add(dxf.text("{}/in Dp".format(self.diametricpitch), alignpoint=(0,-linespacing),
                                  height=textheight, halign=dxfwrite.CENTER, valign=dxfwrite.CENTER,
                                  layer="geartext"))
-
+    
+    def rotated_by(self,angle):
+        return exp(1j*angle)
+            
     def generate_tooth(self, tooth, drawing):
 
         involute_segments = self.involute_points()
         involute_start = involute_segments[0]
         involute_end = involute_segments[-1]
-        
+
+        backlash_center = self.r_pitch * self.rotated_by(self.phi_width/4)
         # general setup
-        p1 = rect(self.r_root, -self.phi_width/2)       # point where root starts
-        p2 = rect(self.r_root, phase(involute_start))   # point where flank starts
+        p1 = self.r_root * self.rotated_by(-self.phi_width/2)       # point where root starts
+        p2 = self.r_root * self.rotated_by(phase(involute_start))   # point where flank starts
         p3 = involute_start   # point where involute starts
         p4 = involute_end
         
         half_control_points = [p1,p2,p3,p4]
         mirrored_control_points = [ p.conjugate() for p in half_control_points[::-1]]
-        control_points = half_control_points + mirrored_control_points    
+        control_points = half_control_points + mirrored_control_points
         
         # per tooth
-        rotate = exp(tooth*self.phi_width*1j)
+        rotate = self.rotated_by(tooth * self.phi_width)
         inv = [ p * rotate for p in involute_segments]
         inv2 = [ p.conjugate() * rotate for p in involute_segments]
         p = [ pt * rotate for pt in control_points]
@@ -141,4 +142,7 @@ class InvoluteGenerator(GearGenerator):
             drawing.add(self.new_line(inv2[i], inv2[i+1]))
         drawing.add(self.new_line(p[5],p[6]))
         drawing.add(self.new_arc(p[6],p[7]))
+
         
+        drawing.add(self.new_circle(backlash_center * rotate, self.backlash, color=1))
+

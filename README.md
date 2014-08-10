@@ -10,7 +10,7 @@ well as other parameters specific to the gear.
 Plans include tools to generate gears with involute and cycloid tooth
 profiles.
 
-The output DXF files have three layers:
+The output DXF files have four layers:
 * gearteeth -- the outline of the tooth itself (in white/black)
 * gearcircles -- the circles that define the gear. This includes at
 least the root, pitch, and outer circles.
@@ -22,30 +22,27 @@ center
 involute
 --------
 
-Generates external involute spur gears
+Generates involute spur gears
+
+Inputs are
+* Module (mm) or diametrical pitch (1/in) (determines if metric or US units)
+* Teeth count or diameter
+* Pressure Angle
+* Backlash allowance
+* Addendum and Dedendum amounts (in terms of the module)
+* Rotation of the gear form, to allow clean drawings of meshing teeth.
+
 Output file name is of form "involute_gear_8_14.2_80.dxf" for an 80-tooth gear with
 8/in diametrical pitch and a 14.2 degree pressure angle.
 
+cycloid
+-------
 
-    usage: involute.py [-h] [-p PRESSUREANGLE] (-m MODULE | -dp DIAMETRICPITCH)
-                       (-t TEETH | -d DIAMETER) [-a ADDENDUM] [-dd DEDENDUM]
-    
-    Generate involute gears
-    
-    optional arguments:
-      -h, --help            show this help message and exit
-      -p PRESSUREANGLE, --pressureangle PRESSUREANGLE
-                            Pressure Angle of gear (default: 20)
-      -m MODULE, --module MODULE
-                            Module of teeth (mm)) (default: None)
-      -dp DIAMETRICPITCH, --diametricpitch DIAMETRICPITCH
-                            Diametric pitch of teeth (1/in) (default: None)
-      -t TEETH, --teeth TEETH
-                            Number of teeth on gear (default: None)
-      -d DIAMETER, --diameter DIAMETER
-                            Diameter of pitch circle (default: None)
-      -a ADDENDUM, --addendum ADDENDUM
-                            Addendum (in units of module) (default: 1.0)
-      -dd DEDENDUM, --dedendum DEDENDUM
-                            Dedendum (in units of module) (default: 1.25)
+Generates cycloidal gears (as in a Root's Blower, not as in a clock)
+
+* Module (mm) or diametrical pitch (1/in) (determines if metric or US units)
+* Teeth count or diameter
+* Rotation of the gear form, to allow clean drawings of meshing teeth.
+
+Output file name is of form "cycloid_gear_8_80.dxf" for an 80-tooth gear with 8/in diametrical pitch
 

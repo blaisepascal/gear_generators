@@ -1,37 +1,35 @@
 #!/usr/bin/python
 #
-# Involute gear generator
+# Cycloid gear generator
 #
 #
 # Copyright 2014 Buddha Buck <blaisepascal@gmail.com>
 #
 
-import argparse, sys, dxfwrite
+import argparse, sys
 from dxfwrite import DXFEngine as dxf
 from math import *
 
-from generators.involutegenerator import InvoluteGenerator
+from generators.cycloidgenerator import CycloidGenerator
 
 # Parser configuration
-parser = argparse.ArgumentParser(description="Generate involute gears",
+parser = argparse.ArgumentParser(description="Generate cycloid gears",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-InvoluteGenerator.add_options(parser)
+CycloidGenerator.add_options(parser)
 
 # Parse arguments 
 args = parser.parse_args()
-generator = InvoluteGenerator(args)
+generator = CycloidGenerator(args)
 
 if (args.verbose):
     generator.verbose1()
     generator.verbose2()
 
 # Let's draw this sucker
-filename = "involute_gear_{}{}_{}pa_{}{}.dxf".format(generator.module if generator.metric else generator.diametricpitch,
+filename = "cycloid_gear_{}{}_{}.dxf".format(generator.module if generator.metric else generator.diametricpitch,
                                                      "mm" if generator.metric else "",
-                                                     generator.pressureangle,
-                                                     generator.teeth,
-                                                     "i" if args.internal else "")
+                                                     generator.teeth)
 
 drawing = dxf.drawing(filename)
 

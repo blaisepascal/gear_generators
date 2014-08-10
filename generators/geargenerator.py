@@ -16,6 +16,7 @@ class GearGenerator(object):
         self.diameter = args.diameter
         self.module = args.module
         self.diametricpitch = args.diametricpitch
+        self.rotation = args.rotation
 
         # module and diametric pitch are metric/US ways of specifying the tooth size    
         if self.module == None:
@@ -65,6 +66,9 @@ class GearGenerator(object):
         sizegroup.add_argument("-t", "--teeth", type=int, help="Number of teeth on gear")
         sizegroup.add_argument("-d", "--diameter", type=float, help="Diameter of pitch circle")
 
+        parser.add_argument("-r", "--rotation", type=float, default=0,
+                            help="Initial rotation of gear (in teeth)")
+
         parser.add_argument("-v", "--verbose", action="store_true",
                            help="Print details of gear generated")
 
@@ -90,7 +94,7 @@ class GearGenerator(object):
 
     def generate_teeth(self, drawing):
         for tooth in range(self.teeth):
-            self.generate_tooth(tooth, drawing)
+            self.generate_tooth(tooth+self.rotation, drawing)
     
     def generate_tooth(self, tooth, drawing):
         pass
