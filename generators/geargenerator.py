@@ -97,9 +97,9 @@ class GearGenerator(object):
     
     def generate_circles(self, drawing):
         segs = []
-        segs.append(self.new_circle(0,self.r_outer, color=2))
-        segs.append(self.new_circle(0,self.r_pitch, color=1))
-        segs.append(self.new_circle(0,self.r_root, color=4))
+        drawing.add(self.new_circle(0,self.r_outer, color=2))
+        drawing.add(self.new_circle(0,self.r_pitch, color=1))
+        drawing.add(self.new_circle(0,self.r_root, color=4))
         for s in segs:
             drawing.add(s)
 

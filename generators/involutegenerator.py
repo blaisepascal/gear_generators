@@ -3,7 +3,7 @@ from geargenerator import GearGenerator
 from dxfwrite import DXFEngine as dxf
 from math import cos, radians
 from inv import Involute
-from cmath import rect, exp
+from cmath import rect, exp, phase
 
 class InvoluteGenerator(GearGenerator):
     'Generator for external involute gears'
@@ -28,23 +28,30 @@ class InvoluteGenerator(GearGenerator):
         r_inner = max(r_root, r_base) # where the involute starts
 
         self.involute = Involute(r_base)
-        # Involute tooth shape geometry.
-        # tooth shape extends from -phi_width/2 to +phi_width/2 in angular measure
-        # involute crosses pitch circle at -/+ phi_width/4, so involute needs to be offset
-        #    to make this so
-        involute_phi_at_pitch = self.involute.phi_at_r(self.r_pitch)
-        involute_phi_at_outer = self.involute.phi_at_r(r_outer)
-        involute_phi_at_inner = self.involute.phi_at_r(r_inner)
-        involute_phi_offset = -self.phi_width/4 #- involute_phi_at_pitch
-        self.phi_root_start = -self.phi_width/2
-        self.phi_involute_start = involute_phi_offset + involute_phi_at_inner
-        self.phi_involute_stop  = involute_phi_offset + involute_phi_at_outer
 
         self.r_outer = r_outer
         self.r_inner = r_inner
         self.r_base = r_base
         self.r_root = r_root
         self.pressureangle = pressureangle
+
+    def involute_points(self):
+        # Involute tooth shape geometry.
+        # tooth shape extends from -phi_width/2 to +phi_width/2 in angular measure
+        # involute crosses pitch circle at -/+ phi_width/4, so involute needs to be offset
+        #    to make this so
+        
+        involute_phi_at_pitch = self.involute.phi_at_r(self.r_pitch)        
+        involute_phi_offset = -self.phi_width/4 - involute_phi_at_pitch
+        offset = exp(involute_phi_offset*1j)
+
+        # calculate involute points, 10 segments
+        t_at_outer = self.involute.t_at_r(self.r_outer)
+        t_at_inner = self.involute.t_at_r(self.r_inner)
+        t_per_segment = (t_at_outer-t_at_inner)/10
+        involute_points = [ self.involute.at(t_at_inner+i*t_per_segment)*offset for i in range(11)]
+
+        return involute_points
 
     def verbose1(self):
         super(InvoluteGenerator,self).verbose1()
@@ -73,11 +80,6 @@ class InvoluteGenerator(GearGenerator):
         drawing.add(self.new_circle(0,self.r_base, color=3))
         drawing.add(self.new_circle(0,self.r_inner, color=4))
 
-        rot = exp(1j*self.phi_width/4)
-        lines = [ self.r_pitch * pow(rot,i) for i in range(-2,3)]
-        for l in lines:
-            drawing.add(self.new_line(l*0.75, l*1.25)
-                        
     def generate_text(self, drawing):
         textheight = self.module/2
         linespacing = self.module*1
@@ -98,22 +100,20 @@ class InvoluteGenerator(GearGenerator):
                                  layer="geartext"))
 
     def generate_tooth(self, tooth, drawing):
+
+        involute_segments = self.involute_points()
+        involute_start = involute_segments[0]
+        involute_end = involute_segments[-1]
+        
         # general setup
-        p1 = rect(self.r_root, self.phi_root_start)       # point where root starts
-        p2 = rect(self.r_root, self.phi_involute_start)   # point where flank starts
-        p3 = rect(self.r_inner, self.phi_involute_start)   # point where involute starts
-        p4 = rect(self.r_outer, self.phi_involute_stop)   # point where crown starts
+        p1 = rect(self.r_root, -self.phi_width/2)       # point where root starts
+        p2 = rect(self.r_root, phase(involute_start))   # point where flank starts
+        p3 = involute_start   # point where involute starts
+        p4 = involute_end
         
         half_control_points = [p1,p2,p3,p4]
         mirrored_control_points = [ p.conjugate() for p in half_control_points[::-1]]
         control_points = half_control_points + mirrored_control_points    
-        
-        # calculate involute points, 10 segments
-        t_at_outer = self.involute.t_at_r(self.r_outer)
-        t_at_inner = self.involute.t_at_r(self.r_inner)
-        t_per_segment = (t_at_outer-t_at_inner)/10
-        offset = exp(self.phi_involute_start*1j)
-        involute_segments = [ self.involute.at(t_at_inner+i*t_per_segment)*offset for i in range(11)]
         
         # per tooth
         rotate = exp(tooth*self.phi_width*1j)
